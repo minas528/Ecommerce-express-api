@@ -16,14 +16,30 @@ const app = express();
 // app.use(cors);
 app.use(bp.json());
 app.use(passport.initialize());
+app.use('/files', express.static("files"));
 
 require('./middlewares/passport')(passport);
 
+// Swagger
+const swaggerUi = require('swagger-ui-express'),
+swaggerDocument = require('./swagger.json');
+
 // User Route Middleware
-app.use('/api/users',require("./routes/users"));
+const users = require("./routes/users");
+const productRoutes = require("./routes/produts");
+const cartRoutes = require('./routes/cart');
+
+app.use('/api/users',users);
+app.use("/api/product", productRoutes);
+app.use("/api/cart", cartRoutes);
+
+
+
 app.get('/',(req,res)=>{
     res.send('welocome');
 });
+
+
 
 const startApp = async () => {
   try {
@@ -37,6 +53,10 @@ const startApp = async () => {
       message: `Successfully connected to database \n${DB}`,
       badge: true,
     });
+
+    // swagger 
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 
     // Litesning on port 5000
     app.listen(PORT, () =>
